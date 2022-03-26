@@ -1,6 +1,7 @@
 package com.example.webpos.model;
 
 import lombok.Data;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.SessionScope;
 

@@ -9,6 +9,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 @Controller
@@ -29,7 +30,8 @@ public class PosController {
     }
 
     @GetMapping("/")
-    public String pos(Model model) {
+    public String pos(Model model, HttpServletRequest request) {
+        request.getSession();
         model.addAttribute("products", posService.products());
         model.addAttribute("cart", cart);
         return "index";

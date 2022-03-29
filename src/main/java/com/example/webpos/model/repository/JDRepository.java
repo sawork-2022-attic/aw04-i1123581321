@@ -1,7 +1,6 @@
-package com.example.webpos.db;
+package com.example.webpos.model.repository;
 
-import com.example.webpos.model.Cart;
-import com.example.webpos.model.Product;
+import com.example.webpos.model.entity.Product;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -10,19 +9,30 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
-import java.net.URL;
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
-public class JD implements PosDB {
-
-
+public class JDRepository implements ProductRepository {
     private List<Product> products = null;
 
+
     @Override
-    @Cacheable("jd_list")
-    public List<Product> getProducts() {
+    public Optional<Product> findById(String s) {
+        for (Product p: findAll()){
+            if (p.getId().equals(s)){
+                return Optional.of(p);
+            }
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    @Cacheable("products")
+    public Iterable<Product> findAll() {
         try {
             if (products == null)
                 products = parseJD("Java");
@@ -32,21 +42,16 @@ public class JD implements PosDB {
         return products;
     }
 
-    @Override
-    public Product getProduct(String productId) {
-        for (Product p : getProducts()) {
-            if (p.getId().equals(productId)) {
-                return p;
-            }
-        }
-        return null;
-    }
-
-    public static List<Product> parseJD(String keyword) throws IOException {
-        //获取请求https://search.jd.com/Search?keyword=java
+    public static List<Product> parseJD(String keyword) throws IOException{
         String url = "https://search.jd.com/Search?keyword=" + keyword;
-        //解析网页
-        Document document = Jsoup.parse(new URL(url), 10000);
+        String cookie = "paste your cookie here";
+        HashMap<String, String> cookieMap = new HashMap<>();
+        String[] items = cookie.trim().split(";");
+        for (String item: items){
+            String[] kv = item.trim().split("=");
+            cookieMap.put(kv[0], kv[1]);
+        }
+        Document document = Jsoup.connect(url).cookies(cookieMap).get();
         //所有js的方法都能用
         Element element = document.getElementById("J_goodsList");
         //获取所有li标签
@@ -62,14 +67,13 @@ public class JD implements PosDB {
             String img = "https:".concat(el.getElementsByTag("img").eq(0).attr("data-lazy-img"));
             String price = el.getElementsByAttribute("data-price").text();
             String title = el.getElementsByClass("p-name").eq(0).text();
-            if (title.indexOf("，") >= 0)
+            if (title.contains("，"))
                 title = title.substring(0, title.indexOf("，"));
 
-            Product product = new Product(id, title, Double.parseDouble(price), img);
+            Product product = new Product(id, title, BigDecimal.valueOf(Double.parseDouble(price)), img);
 
             list.add(product);
         }
         return list;
     }
-
 }

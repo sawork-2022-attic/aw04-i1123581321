@@ -1,0 +1,17 @@
+spring:
+  thymeleaf:
+    cache: false
+  session:
+    store-type: jdbc
+    jdbc:
+      initialize-schema: always
+  datasource:
+    url: jdbc:mysql://172.19.181.213:3306/session_db
+    username: root
+    password: example
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+
+
+tax: '0.12'
+discount: '0.2'
